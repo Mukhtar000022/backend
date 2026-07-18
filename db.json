@@ -1,0 +1,48 @@
+{
+  "home": {
+    "heroEmoji": "🎈",
+    "heroText": "Профессиональная помощь родителям и бережное развитие ребёнка"
+  },
+  "education": [
+    { "id": "edu-1", "icon": "clipboard-list", "title": "Программы", "desc": "по возрастам 2–6 лет", "color": "green" },
+    { "id": "edu-2", "icon": "books", "title": "Предметы", "desc": "математика, грамота, мир", "color": "orange" },
+    { "id": "edu-3", "icon": "calendar", "title": "Расписание", "desc": "распорядок занятий", "color": "yellow" },
+    { "id": "edu-4", "icon": "run", "title": "Психомоторное развитие", "desc": "координация и моторика", "color": "purple" },
+    { "id": "edu-5", "icon": "heart", "title": "Эмоциональный интеллект", "desc": "чувства и общение", "color": "pink" }
+  ],
+  "parents": [
+    { "id": "par-1", "icon": "clock", "title": "Распорядок дня", "desc": "режим с 8:00 до 18:30" },
+    { "id": "par-2", "icon": "soup", "title": "Питание", "desc": "5-разовое, своя кухня" },
+    { "id": "par-3", "icon": "ball", "title": "Кружки и секции", "desc": "творчество и спорт" },
+    { "id": "par-4", "icon": "notebook", "title": "Памятка для родителей", "desc": "что нужно знать" },
+    { "id": "par-5", "icon": "coin", "title": "Цены и условия", "desc": "тарифы и оплата" }
+  ],
+  "courses": [
+    { "id": "crs-1", "icon": "palette", "title": "Рисование", "desc": "творчество · 4–6 лет", "color": "orange" },
+    { "id": "crs-2", "icon": "music", "title": "Музыка и вокал", "desc": "развитие · 3–6 лет", "color": "green" },
+    { "id": "crs-3", "icon": "ball", "title": "Спортивная секция", "desc": "здоровье · 4–6 лет", "color": "yellow" },
+    { "id": "crs-4", "icon": "abc", "title": "Английский язык", "desc": "языки · 4–6 лет", "color": "purple" },
+    { "id": "crs-5", "icon": "music-star", "title": "Танцы", "desc": "творчество · 3–6 лет", "color": "pink" },
+    { "id": "crs-6", "icon": "chess", "title": "Шахматы и логика", "desc": "мышление · 5–6 лет", "color": "blue" }
+  ],
+  "gallery": [
+    { "id": "gal-1", "emoji": "🎨", "color": "orange" },
+    { "id": "gal-2", "emoji": "🧸", "color": "green" },
+    { "id": "gal-3", "emoji": "⚽", "color": "yellow" },
+    { "id": "gal-4", "emoji": "🎵", "color": "purple" },
+    { "id": "gal-5", "emoji": "💃", "color": "pink" },
+    { "id": "gal-6", "emoji": "📚", "color": "blue" },
+    { "id": "gal-7", "emoji": "🌳", "color": "mint" },
+    { "id": "gal-8", "emoji": "🎂", "color": "rose" }
+  ],
+  "contacts": {
+    "name": "Детский сад «Аяла Kids»",
+    "city": "г. Алматы",
+    "phones": ["+7 /727/ 223 80 89", "+7 /701/ 218 92 32"],
+    "email": "info@ayalakids.kz",
+    "address": "ул. Абая 150, Алматы",
+    "instagram": "",
+    "facebook": "",
+    "whatsapp": ""
+  }
+}
