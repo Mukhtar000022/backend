@@ -5,100 +5,646 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Аяла Kids — Админ-панель</title>
 <style>
-  *{box-sizing:border-box;font-family:-apple-system,Segoe UI,Roboto,sans-serif;}
-  body{margin:0;background:#FFF7F3;color:#3a2a22;}
-  header{background:#D85A30;color:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
-  header h1{font-size:18px;margin:0;}
-  header button{background:#fff2;color:#fff;border:1px solid #fff5;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;}
-  main{max-width:900px;margin:0 auto;padding:24px;}
-  .login-box{max-width:340px;margin:80px auto;background:#fff;border-radius:16px;padding:28px;box-shadow:0 8px 24px #0001;}
-  .login-box h2{margin-top:0;color:#D85A30;}
-  input[type=password],input[type=text]{width:100%;padding:10px 12px;border:1px solid #e6d3c8;border-radius:10px;font-size:14px;margin-top:6px;margin-bottom:14px;}
-  button.primary{background:#D85A30;color:#fff;border:none;border-radius:10px;padding:11px;font-weight:700;width:100%;cursor:pointer;font-size:14px;}
-  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
-  .tab{padding:9px 16px;border-radius:20px;background:#fff;border:1px solid #e6d3c8;cursor:pointer;font-size:13px;font-weight:700;color:#993C1D;}
-  .tab.active{background:#D85A30;color:#fff;border-color:#D85A30;}
-  .panel{display:none;background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 14px #0000000d;}
+  :root{
+    --bg:#FBF3EF; --surface:#ffffff; --surface-2:#FAECE7;
+    --ink:#3a2a22; --ink-strong:#993C1D; --muted:#a98876;
+    --primary:#D85A30; --primary-dark:#993C1D;
+    --border:#efe0d8; --soft-bg:#FAEEDA; --soft-ink:#854F0B;
+    --ok:#1D9E75; --ok-bg:#E6F6EF; --err:#c0392b;
+    --radius:16px; --shadow:0 10px 30px rgba(176,133,115,.16);
+    --font:"Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{margin:0;}
+
+  /* login */
+  .login-box{max-width:360px;margin:12vh auto;background:var(--surface);border-radius:22px;padding:32px 28px;box-shadow:var(--shadow);}
+  .login-box .brand{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .balloon{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#FBB89C,#ED7A4E 55%,#D85A30);box-shadow:0 4px 10px rgba(237,122,78,.45);position:relative;flex:none;}
+  .balloon::after{content:"";position:absolute;left:50%;top:27px;width:2px;height:9px;background:#D85A30;transform:translateX(-50%);}
+  .login-box h2{color:var(--ink-strong);font-size:19px;}
+  .login-box p{color:var(--muted);font-size:13px;font-weight:600;margin:2px 0 20px;}
+  label{display:block;font-size:12.5px;font-weight:800;color:var(--ink-strong);margin-bottom:6px;letter-spacing:.2px;}
+  input[type=password],input[type=text]{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font);background:#FFFBF9;color:var(--ink);}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(216,90,48,.14);}
+  button.primary{background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer;font-size:14px;font-family:var(--font);}
+  button.primary:hover{background:#c44e28;}
+  .login-box button.primary{width:100%;margin-top:16px;}
+
+  /* header */
+  header{background:linear-gradient(120deg,#ED7A4E,#D85A30);color:#fff;padding:16px 26px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 18px rgba(216,90,48,.28);}
+  header .brand{display:flex;align-items:center;gap:11px;}
+  header .balloon{box-shadow:0 3px 8px rgba(0,0,0,.2);}
+  header h1{font-size:17px;font-weight:800;}
+  header button{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:10px;padding:9px 15px;cursor:pointer;font-size:13px;font-weight:700;font-family:var(--font);}
+  header button:hover{background:rgba(255,255,255,.28);}
+
+  main{max-width:940px;margin:0 auto;padding:26px 22px 60px;}
+
+  /* tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+  .tab{padding:10px 17px;border-radius:22px;background:var(--surface);border:1.5px solid var(--border);cursor:pointer;font-size:13px;font-weight:800;color:var(--ink-strong);transition:.15s;}
+  .tab:hover{border-color:var(--primary);}
+  .tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 6px 14px rgba(216,90,48,.3);}
+
+  .panel{display:none;background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);}
   .panel.active{display:block;}
-  textarea{width:100%;min-height:320px;font-family:ui-monospace,Consolas,monospace;font-size:13px;padding:12px;border-radius:10px;border:1px solid #e6d3c8;background:#FFFBF9;}
-  .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-  .msg{font-size:13px;font-weight:700;margin-top:10px;}
-  .msg.ok{color:#1D9E75;}
-  .msg.err{color:#c0392b;}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #f1e4dd;}
-  th{color:#993C1D;font-size:12px;text-transform:uppercase;}
-  select{padding:6px 8px;border-radius:8px;border:1px solid #e6d3c8;}
-  .del{color:#c0392b;cursor:pointer;font-weight:700;font-size:12px;}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+  .panel-head h3{color:var(--ink-strong);font-size:16px;}
+  .panel-head .hint{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:3px;}
+  .btn-auto{width:auto;padding:9px 16px;}
+
+  textarea{width:100%;min-height:340px;font-family:ui-monospace,Consolas,monospace;font-size:13px;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:#FFFBF9;color:var(--ink);resize:vertical;}
+  .msg{font-size:13px;font-weight:800;margin-top:12px;min-height:18px;}
+  .msg.ok{color:var(--ok);}
+  .msg.err{color:var(--err);}
+
+  /* leads table */
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
+  th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--border);}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:800;}
+  tr:hover td{background:#FFFAF7;}
+  select{padding:7px 10px;border-radius:9px;border:1.5px solid var(--border);font-family:var(--font);font-size:13px;background:#fff;color:var(--ink);}
+  .del{color:var(--err);cursor:pointer;font-weight:800;font-size:12px;}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;background:var(--soft-bg);color:var(--soft-ink);}
+
+  /* settings form */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:640px){.form-grid{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;}
+  .field.full{grid-column:1/-1;}
+  .field .sub{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.4;}
+  .switch-row{display:flex;align-items:center;gap:12px;background:var(--surface-2);border-radius:12px;padding:12px 14px;}
+  .switch-row .txt b{display:block;font-size:13.5px;color:var(--ink-strong);}
+  .switch-row .txt small{font-size:11.5px;color:var(--muted);font-weight:600;}
+  .switch{position:relative;width:48px;height:28px;flex:none;margin-left:auto;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;inset:0;background:#e0cabd;border-radius:20px;cursor:pointer;transition:.2s;}
+  .slider::before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 4px #0002;}
+  .switch input:checked + .slider{background:var(--primary);}
+  .switch input:checked + .slider::before{transform:translateX(20px);}
+
+  .design-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media(max-width:520px){.design-grid{grid-template-columns:1fr 1fr;}}
+  .design-opt{border:2px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--surface);transition:.15s;}
+  .design-opt:hover{border-color:var(--primary);}
+  .design-opt.active{border-color:var(--primary);background:#FFF7F3;}
+  .design-opt .nm{font-size:12px;font-weight:800;color:var(--ink);margin-top:9px;}
+
+  /* live preview */
+  .preview{margin-top:8px;background:var(--surface-2);border-radius:16px;padding:22px;display:flex;justify-content:center;}
+  .paybtn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:none;border-radius:22px;padding:13px 22px;font-family:var(--font);font-weight:800;font-size:14.5px;cursor:default;min-width:220px;}
+  .paybtn svg{width:18px;height:18px;flex:none;}
+  .v-solid{background:var(--primary);color:#fff;}
+  .v-gradient{background:linear-gradient(135deg,#FBB89C,#ED7A4E 55%,#D85A30);color:#fff;box-shadow:0 8px 18px rgba(237,122,78,.42);}
+  .v-outline{background:transparent;color:var(--primary);border:2px solid var(--primary);}
+  .v-soft{background:var(--soft-bg);color:var(--soft-ink);}
+  .v-glow{background:var(--primary-dark);color:#FFE7DB;box-shadow:0 6px 16px rgba(216,90,48,.55);}
+  .v-card{display:inline-flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:16px;padding:11px 14px;box-shadow:var(--shadow);min-width:250px;}
+  .v-card .ci{width:38px;height:38px;border-radius:11px;background:var(--primary);display:flex;align-items:center;justify-content:center;}
+  .v-card .ci svg{width:19px;height:19px;color:#fff;}
+  .v-card .ct b{display:block;font-size:13px;font-weight:800;color:var(--ink-strong);}
+  .v-card .ct small{font-size:10.5px;color:var(--muted);font-weight:700;}
+  .v-card .cam{font-size:13.5px;font-weight:800;color:var(--primary);margin-left:auto;}
+
+  .save-bar{margin-top:22px;display:flex;align-items:center;gap:14px;}
+
+  /* Блоки главного экрана (перетаскивание) */
+  .lay-item{display:flex;align-items:center;gap:11px;background:var(--surface);border:1.5px solid var(--border);
+            border-radius:14px;padding:12px 13px;margin-bottom:9px;cursor:grab;}
+  .lay-item:hover{border-color:var(--primary);}
+  .lay-item.off{opacity:.5;}
+  .lay-grip{color:var(--muted);font-size:15px;letter-spacing:-2px;user-select:none;}
+  .lay-txt{flex:1;min-width:0;}
+  .lay-txt b{display:block;font-size:13.5px;color:var(--ink-strong);}
+  .lay-txt small{font-size:11px;color:var(--muted);font-weight:600;}
+  .lay-btns{display:flex;gap:5px;}
+  .lay-btns button{width:30px;height:30px;border-radius:9px;border:1.5px solid var(--border);background:#fff;
+                   cursor:pointer;font-size:13px;color:var(--ink-strong);}
+  .lay-btns button:hover:not(:disabled){border-color:var(--primary);}
+  .lay-btns button:disabled{opacity:.35;cursor:default;}
+
+  /* Дни недели у распорядка */
+  .rt-days-hint{font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:8px;line-height:1.4;}
+  .rt-days{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+  .rt-day{padding:8px 13px;border-radius:11px;border:1.5px solid var(--border);background:#fff;
+          cursor:pointer;font-size:12.5px;font-weight:800;color:var(--muted);font-family:var(--font);}
+  .rt-day:hover{border-color:var(--primary);}
+  .rt-day.on{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .rt-day.all{color:var(--ink-strong);}
+
+  /* Чаты (просмотр админом) */
+  .chats-layout{display:grid;grid-template-columns:290px 1fr;gap:18px;align-items:start;}
+  @media(max-width:760px){.chats-layout{grid-template-columns:1fr;}}
+  .chats-list{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow-y:auto;}
+  .chat-row{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px;cursor:pointer;}
+  .chat-row:hover{border-color:var(--primary);}
+  .chat-row.on{border-color:var(--primary);background:#FFF7F3;}
+  .chat-row b{display:block;font-size:13px;color:var(--ink-strong);}
+  .chat-row small{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:2px;}
+  .chat-row .last{font-size:11.5px;color:var(--ink);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .chats-view{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;min-height:320px;max-height:560px;overflow-y:auto;}
+  .chat-head{font-size:14px;font-weight:800;color:var(--ink-strong);margin-bottom:14px;}
+  .msg-bubble{max-width:76%;padding:9px 13px;border-radius:14px;margin-bottom:9px;font-size:13px;line-height:1.45;}
+  .msg-bubble .who{font-size:10px;font-weight:800;opacity:.75;margin-bottom:3px;text-transform:uppercase;}
+  .msg-bubble .tm{font-size:10px;opacity:.6;margin-top:4px;}
+  .msg-tutor{background:var(--surface-2);color:var(--ink);margin-right:auto;}
+  .msg-parent{background:var(--primary);color:#fff;margin-left:auto;}
+
+  /* Логотип */
+  .logo-box{display:flex;flex-direction:column;align-items:flex-start;gap:14px;}
+  .logo-img{width:120px;height:120px;object-fit:contain;background:var(--surface-2);border-radius:16px;padding:10px;}
+  .logo-empty{font-size:13px;color:var(--muted);font-weight:600;padding:26px 0;}
+
+  /* База данных */
+  .subnav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;}
+  .subtab{padding:8px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);cursor:pointer;font-size:12.5px;font-weight:800;color:var(--soft-ink);}
+  .subtab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .db-form{background:var(--surface-2);border-radius:16px;padding:16px;margin-bottom:18px;}
+  .db-form h4{margin:0 0 12px;font-size:14px;color:var(--ink-strong);}
+  .db-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end;}
+  .db-field label{font-size:11.5px;}
+  .db-field input,.db-field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font);background:#fff;color:var(--ink);}
+  .db-actions{margin-top:14px;display:flex;gap:10px;align-items:center;}
+  .btn-ghost{background:#fff;color:var(--muted);border:1.5px solid var(--border);border-radius:12px;padding:11px 16px;font-weight:800;font-size:13px;cursor:pointer;font-family:var(--font);}
+  .badge-role{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;background:var(--soft-bg);color:var(--soft-ink);}
+  .badge-role.admin{background:#FBEAF0;color:#993556;}
+  .badge-role.tutor{background:#E6F1FB;color:#185FA5;}
+  .badge-role.parent{background:#E1F5EE;color:#0F6E56;}
+  .edit-link{color:var(--primary);cursor:pointer;font-weight:800;font-size:12px;margin-right:12px;}
+
+  /* Даму картасы (карта развития) */
+  .dc-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;background:var(--surface-2);border-radius:16px;padding:16px;margin-bottom:18px;align-items:end;}
+  .dc-area{margin-top:20px;}
+  .dc-area h4{font-size:13.5px;color:var(--ink-strong);background:var(--soft-bg);padding:9px 13px;border-radius:10px;margin:0 0 6px;}
+  .dc-skill{display:flex;gap:12px;align-items:flex-start;padding:11px 6px;border-bottom:1px solid var(--border);}
+  .dc-skill .no{flex:none;width:26px;height:26px;border-radius:50%;background:var(--surface-2);color:var(--soft-ink);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;}
+  .dc-skill .txt{flex:1;font-size:13px;line-height:1.45;}
+  .dc-levels{display:flex;gap:6px;flex:none;flex-wrap:wrap;}
+  .dc-lv{border:1.5px solid var(--border);border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:800;cursor:pointer;color:var(--muted);background:#fff;white-space:nowrap;user-select:none;}
+  .dc-lv.on-formed{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);}
+  .dc-lv.on-partial{background:var(--soft-bg);border-color:#e0a94b;color:var(--soft-ink);}
+  .dc-lv.on-not_formed{background:#FBEAEA;border-color:var(--err);color:var(--err);}
+  .dc-readonly .dc-lv{cursor:default;opacity:.5;}
+  .dc-readonly .dc-lv.on-formed,.dc-readonly .dc-lv.on-partial,.dc-readonly .dc-lv.on-not_formed{opacity:1;}
+  .dc-empty{color:var(--muted);font-weight:700;font-size:13px;padding:20px 4px;}
+
+  /* Модальное окно (регистрация родителя по заявке) */
+  .modal{position:fixed;inset:0;background:rgba(40,20,12,.42);display:none;align-items:center;justify-content:center;padding:20px;z-index:100;}
+  .modal.on{display:flex;}
+  .modal-box{background:var(--surface);border-radius:20px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow:auto;box-shadow:var(--shadow);}
+  .modal-box h3{color:var(--ink-strong);font-size:17px;margin-bottom:4px;}
+  .modal-box .sub{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:18px;}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+  @media(max-width:520px){.modal-grid{grid-template-columns:1fr;}}
+  .modal-grid .full{grid-column:1/-1;}
+  .modal-grid label{font-size:11.5px;}
+  .modal-grid input,.modal-grid select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13.5px;font-family:var(--font);background:#FFFBF9;color:var(--ink);}
+  .modal-sect{grid-column:1/-1;font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;}
+  .modal-actions{display:flex;gap:11px;margin-top:20px;}
+  .modal-actions .primary{flex:1.4;}
+  .modal-actions .btn-ghost{flex:1;}
+  .cred{background:var(--ok-bg);border-radius:12px;padding:14px;margin-top:16px;}
+  .cred b{display:block;font-size:13px;color:var(--ok);margin-bottom:8px;}
+  .cred div{font-size:13.5px;font-weight:800;color:var(--ink);font-family:ui-monospace,Consolas,monospace;}
+  .reg-link{color:var(--ok);cursor:pointer;font-weight:800;font-size:12px;margin-right:12px;}
+
+  /* выбор детей при регистрации */
+  .kid-list{border:1.5px solid var(--border);border-radius:12px;max-height:190px;overflow:auto;background:#FFFBF9;}
+  .kid-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .kid-item:last-child{border-bottom:none;}
+  .kid-item:hover{background:#FFF4EF;}
+  .kid-item input{width:17px;height:17px;accent-color:var(--primary);cursor:pointer;flex:none;}
+  .kid-item .nm{font-size:13.5px;font-weight:800;color:var(--ink);}
+  .kid-item .gr{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:1px;}
+  .kid-item.taken{opacity:.55;cursor:default;}
+  .kid-item.taken:hover{background:none;}
+  .kid-empty{padding:16px 12px;font-size:12.5px;color:var(--muted);font-weight:700;text-align:center;}
+  .kid-add{display:inline-block;margin-top:10px;color:var(--primary);font-weight:800;font-size:12.5px;cursor:pointer;}
+  .kid-newbox{margin-top:12px;background:var(--surface-2);border-radius:12px;padding:12px;}
+
+  /* Күн тәртібі в админ-панели */
+  .sect-title{font-size:13px;font-weight:800;color:var(--ink-strong);margin-bottom:12px;}
+  .rt-item{display:grid;grid-template-columns:92px 1fr auto;gap:10px;align-items:end;background:var(--surface-2);
+           border-radius:12px;padding:12px;margin-bottom:10px;}
+  .rt-item .full{grid-column:1/-1;}
+  .rt-item label{font-size:11px;}
+  .rt-item input{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;
+                 font-family:var(--font);background:#fff;color:var(--ink);}
+  .rt-del{background:#fff;border:1.5px solid var(--border);color:var(--err);border-radius:9px;padding:9px 11px;
+          font-weight:800;font-size:12px;cursor:pointer;height:37px;}
+  .ph-routine{background:#fff;border:1px solid var(--border);border-radius:13px;padding:12px;margin-bottom:8px;}
+  .ph-routine .tm{font-size:11.5px;font-weight:800;color:var(--primary);}
+  .ph-routine .tt{font-size:13px;font-weight:800;color:var(--ink-strong);margin-top:2px;}
+  .ph-routine .st{font-size:11px;color:var(--muted);margin-top:1px;}
+
+  /* Редактор контента (без JSON) */
+  .ce-layout{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start;}
+  @media(max-width:820px){.ce-layout{grid-template-columns:1fr;}}
+  .ce-form{min-width:0;}
+  .ce-row{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+  .ce-row label{font-size:12.5px;}
+  .ce-row input[type=text],.ce-row textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:11px;font-size:14px;font-family:var(--font);background:#FFFBF9;color:var(--ink);}
+  .ce-row textarea{min-height:90px;font-family:var(--font);resize:vertical;}
+  .ce-card{background:var(--surface-2);border-radius:14px;padding:14px;margin-bottom:14px;position:relative;}
+  .ce-card .ce-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:520px){.ce-card .ce-grid{grid-template-columns:1fr;}}
+  .ce-card .full{grid-column:1/-1;}
+  .ce-card-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .ce-card-head .n{font-weight:800;color:var(--ink-strong);font-size:13px;}
+  .ce-card-head .sp{flex:1;}
+  .ce-icon-btn,.ce-mini{border:1px solid var(--border);background:#fff;border-radius:9px;cursor:pointer;font-size:12px;font-weight:800;color:var(--soft-ink);padding:6px 9px;}
+  .ce-icon-btn:hover,.ce-mini:hover{border-color:var(--primary);}
+  .ce-mini.rm{color:var(--err);}
+  .ce-add{background:#fff;border:1.5px dashed var(--primary);color:var(--primary);border-radius:12px;padding:11px 16px;font-weight:800;font-size:13px;cursor:pointer;font-family:var(--font);width:100%;}
+  .ce-add:hover{background:#FFF7F3;}
+
+  /* выбор иконки / эмодзи / цвета */
+  .ce-pick{display:flex;flex-wrap:wrap;gap:6px;}
+  .ce-pick .opt{width:38px;height:38px;border-radius:10px;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;}
+  .ce-pick .opt:hover{border-color:var(--primary);}
+  .ce-pick .opt.on{border-color:var(--primary);box-shadow:0 0 0 3px rgba(216,90,48,.15);}
+  .ce-swatch{width:38px;height:38px;border-radius:10px;border:2px solid transparent;cursor:pointer;position:relative;}
+  .ce-swatch.on{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--primary);}
+  .ce-emoji-in{width:64px !important;text-align:center;font-size:24px !important;}
+
+  /* превью-телефон */
+  .ce-preview{position:sticky;top:14px;}
+  .ce-preview .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:800;margin-bottom:8px;}
+  .ce-phone{background:#fff;border:8px solid #2c2320;border-radius:30px;padding:16px 13px;min-height:420px;box-shadow:var(--shadow);overflow:hidden;}
+  .ce-phone .scr{display:flex;flex-direction:column;gap:10px;}
+  .ph-hero{text-align:center;padding:18px 8px;background:linear-gradient(135deg,#FBB89C,#ED7A4E);border-radius:18px;color:#fff;}
+  .ph-hero .em{font-size:44px;line-height:1;}
+  .ph-hero .tx{font-size:12.5px;font-weight:700;margin-top:8px;line-height:1.4;}
+  .ph-card{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--border);border-left:5px solid var(--muted);border-radius:13px;padding:10px 12px;}
+  .ph-card .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;}
+  .ph-card .tt{font-size:13px;font-weight:800;color:var(--ink-strong);}
+  .ph-card .ds{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px;}
+  .ph-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .ph-tile{aspect-ratio:1;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;}
+  .ph-contacts{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;}
+  .ph-contacts .nm{font-size:14px;font-weight:800;color:var(--ink-strong);}
+  .ph-contacts .rw{font-size:12px;color:var(--ink);margin-top:7px;display:flex;gap:7px;}
+  .ph-contacts .rw span{color:var(--muted);font-weight:700;}
 </style>
 </head>
 <body>
 
 <div id="login" class="login-box">
-  <h2>Аяла Kids · Админка</h2>
-  <label>Пароль администратора</label>
-  <input type="password" id="pw" placeholder="Пароль">
+  <div class="brand"><span class="balloon"></span><h2>Аяла Kids</h2></div>
+  <p>Панель администратора</p>
+  <label for="pw">Пароль</label>
+  <input type="password" id="pw" placeholder="Введите пароль" onkeydown="if(event.key==='Enter')login()">
   <button class="primary" onclick="login()">Войти</button>
   <div class="msg err" id="loginMsg"></div>
 </div>
 
 <div id="app" style="display:none;">
   <header>
-    <h1>🎈 Аяла Kids — Админ-панель</h1>
+    <div class="brand"><span class="balloon"></span><h1>Аяла Kids — Админ-панель</h1></div>
     <button onclick="logout()">Выйти</button>
   </header>
   <main>
     <div class="tabs">
       <div class="tab active" data-tab="leads" onclick="switchTab('leads')">Заявки</div>
+      <div class="tab" data-tab="payments" onclick="switchTab('payments')">🧾 Платежи</div>
+      <div class="tab" data-tab="db" onclick="switchTab('db')">🗂 База данных</div>
+      <div class="tab" data-tab="devcard" onclick="switchTab('devcard')">📋 Даму картасы</div>
+      <div class="tab" data-tab="routine" onclick="switchTab('routine')">🕐 Күн тәртібі</div>
+      <div class="tab" data-tab="chats" onclick="switchTab('chats')">💬 Чаттар</div>
+      <div class="tab" data-tab="theme" onclick="switchTab('theme')">🎨 Дизайн</div>
+      <div class="tab" data-tab="layout" onclick="switchTab('layout')">🧩 Блоктар</div>
+      <div class="tab" data-tab="logo" onclick="switchTab('logo')">🖼 Логотип</div>
+      <div class="tab" data-tab="payment" onclick="switchTab('payment')">💳 Оплата</div>
       <div class="tab" data-tab="home" onclick="switchTab('home')">Главная</div>
-      <div class="tab" data-tab="education" onclick="switchTab('education')">Образование</div>
-      <div class="tab" data-tab="parents" onclick="switchTab('parents')">Родителям</div>
-      <div class="tab" data-tab="courses" onclick="switchTab('courses')">Кружки</div>
-      <div class="tab" data-tab="gallery" onclick="switchTab('gallery')">Галерея</div>
       <div class="tab" data-tab="contacts" onclick="switchTab('contacts')">Контакты</div>
     </div>
 
+    <!-- Заявки -->
     <div class="panel active" id="panel-leads">
-      <div class="row"><strong>Заявки родителей</strong><button class="primary" style="width:auto;padding:8px 14px;" onclick="loadLeads()">Обновить</button></div>
-      <table>
-        <thead><tr><th>Дата</th><th>Тип</th><th>Имя</th><th>Телефон</th><th>Сообщение</th><th>Статус</th><th></th></tr></thead>
-        <tbody id="leadsBody"></tbody>
-      </table>
+      <div class="panel-head">
+        <div><h3>Заявки родителей</h3><div class="hint">Консультации и записи из приложения</div></div>
+        <button class="primary btn-auto" onclick="loadLeads()">Обновить</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Дата</th><th>Тип</th><th>Имя</th><th>Телефон</th><th>Сообщение</th><th>Статус</th><th></th></tr></thead>
+          <tbody id="leadsBody"></tbody>
+        </table>
+      </div>
     </div>
 
+    <!-- Журнал платежей -->
+    <div class="panel" id="panel-payments">
+      <div class="panel-head">
+        <div><h3>Журнал платежей</h3><div class="hint">Записи создаются при открытии Kaspi. Статус отмечайте вручную, сверяясь с кабинетом Kaspi Business.</div></div>
+        <button class="primary btn-auto" onclick="loadPayments()">Обновить</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Дата</th><th>За кого</th><th>Телефон</th><th>Сумма</th><th>Способ</th><th>Статус</th><th></th></tr></thead>
+          <tbody id="paymentsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- База данных -->
+    <div class="panel" id="panel-db">
+      <div class="panel-head">
+        <div><h3>База данных</h3><div class="hint">Пользователи, группы, родители, дети и воспитатели</div></div>
+        <button class="primary btn-auto" onclick="dbLoad()">Обновить</button>
+      </div>
+      <div class="subnav" id="dbNav"></div>
+      <div class="db-form">
+        <h4 id="dbFormTitle">Добавить запись</h4>
+        <div class="db-fields" id="dbFields"></div>
+        <div class="db-actions">
+          <button class="primary btn-auto" onclick="dbSave()">Сохранить</button>
+          <button class="btn-ghost" id="dbCancel" style="display:none;" onclick="dbResetForm()">Отмена</button>
+          <div class="msg" id="dbMsg"></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead id="dbHead"></thead>
+          <tbody id="dbBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Даму картасы (карта развития ребёнка / ИКР НОБД) -->
+    <div class="panel" id="panel-devcard">
+      <div class="panel-head">
+        <div><h3>Баланың даму картасы</h3><div class="hint">НОБД жүйесіне арналған жеке даму картасы. Тәрбиеші толтырады, ата-ана қосымшада тек қарайды.</div></div>
+      </div>
+      <div class="dc-top">
+        <div class="db-field">
+          <label>Бала *</label>
+          <select id="dc-student" onchange="dcLoadCard()"></select>
+        </div>
+        <div class="db-field">
+          <label>Жас тобы *</label>
+          <select id="dc-group" onchange="dcLoadCard()"></select>
+        </div>
+        <div class="db-field">
+          <label>Аралық күні (баға кезеңі)</label>
+          <input type="text" id="dc-period" placeholder="Мыс.: 2026 қаңтар">
+        </div>
+      </div>
+      <div id="dc-note-wrap" class="db-field" style="margin-bottom:16px;">
+        <label>Тәрбиешінің жалпы пікірі</label>
+        <input type="text" id="dc-note" placeholder="Қосымша ескертпе (міндетті емес)">
+      </div>
+      <div id="dc-body"><div class="dc-empty">Баланы таңдаңыз.</div></div>
+      <div class="save-bar">
+        <button class="primary btn-auto" onclick="dcSave()">Картаны сақтау</button>
+        <div class="msg" id="dc-msg"></div>
+      </div>
+    </div>
+
+    <!-- Күн тәртібі и меню группы -->
+    <!-- Переписка воспитателей с родителями (только просмотр) -->
+    <div class="panel" id="panel-chats">
+      <div class="panel-head">
+        <div><h3>Чаттар</h3><div class="hint">Тәрбиеші мен ата-ана арасындағы жазысу. Тек оқу — әкімші жаза алмайды</div></div>
+        <button class="primary btn-auto" onclick="chatsLoad()">Обновить</button>
+      </div>
+      <div class="chats-layout">
+        <div class="chats-list" id="chatsList"></div>
+        <div class="chats-view" id="chatsView">
+          <div class="dc-empty">Сол жақтан диалогты таңдаңыз</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-routine">
+      <div class="panel-head">
+        <div><h3>Күн тәртібі және ас мәзірі</h3><div class="hint">Заполняет только администратор. Воспитатель и родители видят это в приложении.</div></div>
+      </div>
+
+      <div class="dc-top">
+        <div class="db-field">
+          <label>Группа *</label>
+          <select id="rt-group" onchange="routineLoad()"></select>
+        </div>
+        <div class="db-field">
+          <label>Дата меню</label>
+          <input type="date" id="rt-date" onchange="routineLoadMenu()">
+        </div>
+      </div>
+
+      <div class="ce-layout">
+        <div class="ce-form">
+          <div class="sect-title">Күн тәртібі</div>
+          <div class="rt-days-hint">Аптаның қай күндеріне жазылады (бір рет толтырасыз — барлық белгіленген күнге сақталады):</div>
+          <div class="rt-days" id="rt-days"></div>
+          <div id="rt-items"></div>
+          <button class="ce-add" onclick="routineAdd()">+ Пункт қосу</button>
+
+          <div class="sect-title" style="margin-top:22px;">Ас мәзірі (на выбранную дату)</div>
+          <div class="ce-row"><label>Таңғы ас</label><input type="text" id="rt-breakfast" placeholder="Ботқа, шай"></div>
+          <div class="ce-row"><label>Екінші таңғы ас</label><input type="text" id="rt-breakfast2" placeholder="Жеміс, сүт"></div>
+          <div class="ce-row"><label>Түскі ас</label><input type="text" id="rt-lunch" placeholder="Сорпа, палау"></div>
+          <div class="ce-row"><label>Бесін ас</label><input type="text" id="rt-snack" placeholder="Алма, печенье"></div>
+          <div class="ce-row"><label>Кешкі ас</label><input type="text" id="rt-dinner" placeholder="Көже, нан"></div>
+
+          <div class="save-bar">
+            <button class="primary btn-auto" onclick="routineSave()">Сохранить</button>
+            <div class="msg" id="msg-routine"></div>
+          </div>
+        </div>
+        <div class="ce-preview">
+          <div class="lbl">Превью в приложении</div>
+          <div class="ce-phone"><div class="scr" id="rt-preview"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Дизайн: цвета приложения -->
+    <div class="panel" id="panel-theme">
+      <div class="panel-head">
+        <div><h3>Цвета приложения</h3><div class="hint">Меняются в мобильном приложении при следующем запуске</div></div>
+        <button class="primary btn-auto" onclick="themeSave()">Сохранить</button>
+      </div>
+      <div class="ce-layout">
+        <div class="ce-form" id="themeForm"></div>
+        <div class="ce-preview">
+          <div class="lbl">Превью в приложении</div>
+          <div class="ce-phone" id="themePreview"></div>
+          <button class="btn-ghost" style="width:100%;margin-top:12px;" onclick="themeReset()">Вернуть исходные</button>
+        </div>
+      </div>
+      <div class="msg" id="msg-theme" style="margin-top:14px;"></div>
+    </div>
+
+    <!-- Порядок блоков на главном экране родителя -->
+    <div class="panel" id="panel-layout">
+      <div class="panel-head">
+        <div><h3>Блоки главного экрана</h3><div class="hint">Перетащите панели мышью, чтобы поменять порядок. Глазом — скрыть блок</div></div>
+        <button class="primary btn-auto" onclick="layoutSave()">Сохранить</button>
+      </div>
+      <div class="ce-layout">
+        <div class="ce-form" id="layoutList"></div>
+        <div class="ce-preview">
+          <div class="lbl">Превью в приложении</div>
+          <div class="ce-phone"><div class="scr" id="layoutPreview"></div></div>
+          <button class="btn-ghost" style="width:100%;margin-top:12px;" onclick="layoutReset()">Вернуть исходные</button>
+        </div>
+      </div>
+      <div class="msg" id="msg-layout" style="margin-top:14px;"></div>
+    </div>
+
+    <!-- Оплата -->
+    <div class="panel" id="panel-payment">
+      <div class="panel-head">
+        <div><h3>Настройки оплаты</h3><div class="hint">Меняется в приложении сразу — без пересборки</div></div>
+      </div>
+
+      <div class="switch-row" style="margin-bottom:20px;">
+        <div class="txt"><b>Кнопка оплаты включена</b><small>Показывать кнопку «Оплатить» в приложении</small></div>
+        <label class="switch"><input type="checkbox" id="pay-enabled" onchange="renderPreview()"><span class="slider"></span></label>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Сумма</label>
+          <input type="text" id="pay-amount" placeholder="15 000 ₸" oninput="renderPreview()">
+          <span class="sub">Показывается на кнопке и в окне оплаты. Для Kaspi берутся только цифры.</span>
+        </div>
+        <div class="field">
+          <label>Заголовок окна оплаты</label>
+          <input type="text" id="pay-title" placeholder="Оплата за обучение">
+        </div>
+        <div class="field full">
+          <label>Ссылка Kaspi (Kaspi Pay / QR)</label>
+          <input type="text" id="pay-kaspi" placeholder="https://kaspi.kz/pay/ваша-ссылка">
+          <span class="sub">Из кабинета Kaspi Business. Можно с шаблоном суммы: …?amount={amount}</span>
+        </div>
+        <div class="field full">
+          <label>Дизайн кнопки</label>
+          <div class="design-grid" id="designGrid"></div>
+        </div>
+        <div class="field full">
+          <label>Предпросмотр</label>
+          <div class="preview" id="preview"></div>
+        </div>
+      </div>
+
+      <div class="save-bar">
+        <button class="primary btn-auto" onclick="saveSettings()">Сохранить настройки</button>
+        <div class="msg" id="msg-payment"></div>
+      </div>
+    </div>
+
+    <!-- Контент-разделы (визуальный редактор + превью) -->
     <div class="panel" id="panel-home">
-      <div class="row"><strong>Раздел: Главная</strong><button class="primary" style="width:auto;padding:8px 14px;" onclick="save('home')">Сохранить</button></div>
-      <textarea id="ta-home"></textarea>
-      <div class="msg" id="msg-home"></div>
+      <div class="panel-head"><div><h3>Главная</h3><div class="hint">Эмодзи и приветственный текст на главном экране</div></div><button class="primary btn-auto" onclick="ce.save('home')">Сохранить</button></div>
+      <div class="ce-layout">
+        <div class="ce-form" id="ce-form-home"></div>
+        <div class="ce-preview"><div class="lbl">Превью в приложении</div><div class="ce-phone"><div class="scr" id="ce-prev-home"></div></div></div>
+      </div>
+      <div class="msg" id="msg-home" style="margin-top:14px;"></div>
     </div>
-    <div class="panel" id="panel-education">
-      <div class="row"><strong>Раздел: Образование</strong><button class="primary" style="width:auto;padding:8px 14px;" onclick="save('education')">Сохранить</button></div>
-      <textarea id="ta-education"></textarea>
-      <div class="msg" id="msg-education"></div>
+
+    <!-- Логотип детского сада -->
+    <div class="panel" id="panel-logo">
+      <div class="panel-head">
+        <div><h3>Логотип детского сада</h3><div class="hint">Показывается на экране входа и в шапке приложения. PNG или JPG, до 3 МБ</div></div>
+        <label class="primary btn-auto" style="cursor:pointer;">
+          Загрузить
+          <input type="file" accept="image/png,image/jpeg,image/webp" style="display:none;"
+                 onchange="logoEditor.pick(this)">
+        </label>
+      </div>
+      <div class="ce-layout">
+        <div class="ce-form"><div id="logoBox" class="logo-box"></div></div>
+        <div class="ce-preview">
+          <div class="lbl">Превью в приложении</div>
+          <div class="ce-phone"><div class="scr" id="logoPreview"></div></div>
+        </div>
+      </div>
+      <div class="msg" id="msg-logo" style="margin-top:14px;"></div>
     </div>
-    <div class="panel" id="panel-parents">
-      <div class="row"><strong>Раздел: Родителям</strong><button class="primary" style="width:auto;padding:8px 14px;" onclick="save('parents')">Сохранить</button></div>
-      <textarea id="ta-parents"></textarea>
-      <div class="msg" id="msg-parents"></div>
-    </div>
-    <div class="panel" id="panel-courses">
-      <div class="row"><strong>Раздел: Кружки</strong><button class="primary" style="width:auto;padding:8px 14px;" onclick="save('courses')">Сохранить</button></div>
-      <textarea id="ta-courses"></textarea>
-      <div class="msg" id="msg-courses"></div>
-    </div>
-    <div class="panel" id="panel-gallery">
-      <div class="row"><strong>Раздел: Галерея</strong><button class="primary" style="width:auto;padding:8px 14px;" onclick="save('gallery')">Сохранить</button></div>
-      <textarea id="ta-gallery"></textarea>
-      <div class="msg" id="msg-gallery"></div>
-    </div>
+
     <div class="panel" id="panel-contacts">
-      <div class="row"><strong>Раздел: Контакты</strong><button class="primary" style="width:auto;padding:8px 14px;" onclick="save('contacts')">Сохранить</button></div>
-      <textarea id="ta-contacts"></textarea>
-      <div class="msg" id="msg-contacts"></div>
+      <div class="panel-head"><div><h3>Контакты</h3><div class="hint">Телефоны, адрес, соцсети</div></div><button class="primary btn-auto" onclick="ce.save('contacts')">Сохранить</button></div>
+      <div class="ce-layout">
+        <div class="ce-form" id="ce-form-contacts"></div>
+        <div class="ce-preview"><div class="lbl">Превью в приложении</div><div class="ce-phone"><div class="scr" id="ce-prev-contacts"></div></div></div>
+      </div>
+      <div class="msg" id="msg-contacts" style="margin-top:14px;"></div>
     </div>
   </main>
 </div>
 
+<!-- Регистрация родителя прямо из заявки -->
+<div class="modal" id="regModal">
+  <div class="modal-box">
+    <h3>Регистрация родителя</h3>
+    <div class="sub" id="regFrom"></div>
+
+    <div class="modal-grid">
+      <div class="modal-sect">Аккаунт для входа</div>
+      <div class="db-field">
+        <label>Телефон *</label>
+        <input type="text" id="reg-phone" placeholder="+7(701) 234-56-78">
+      </div>
+      <div class="db-field">
+        <label>Пароль *</label>
+        <input type="text" id="reg-pass">
+      </div>
+
+      <div class="modal-sect">Родитель</div>
+      <div class="db-field">
+        <label>Имя *</label>
+        <input type="text" id="reg-firstname">
+      </div>
+      <div class="db-field">
+        <label>Фамилия *</label>
+        <input type="text" id="reg-surname">
+      </div>
+      <div class="db-field full">
+        <label>Группа</label>
+        <select id="reg-group"></select>
+      </div>
+
+      <div class="modal-sect">Дети (выберите из списка)</div>
+      <div class="full">
+        <div class="kid-list" id="reg-kids"></div>
+        <div class="kid-newbox" id="reg-new-box" style="display:none;">
+          <div class="modal-grid" style="gap:10px;">
+            <div class="db-field">
+              <label>Имя нового ребёнка</label>
+              <input type="text" id="reg-child-firstname">
+            </div>
+            <div class="db-field">
+              <label>Фамилия</label>
+              <input type="text" id="reg-child-surname">
+            </div>
+          </div>
+        </div>
+        <span class="kid-add" id="reg-new-toggle" onclick="regToggleNewChild()">+ Добавить нового ребёнка</span>
+      </div>
+    </div>
+
+    <div class="msg" id="regMsg"></div>
+    <div class="cred" id="regCred" style="display:none;"></div>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="regClose()">Отмена</button>
+      <button class="primary" id="regSubmit" onclick="regSubmit()">Зарегистрировать</button>
+    </div>
+  </div>
+</div>
+
 <script src="app.js"></script>
+<script src="content-editor.js"></script>
+<script src="theme-editor.js"></script>
+<script src="layout-editor.js"></script>
+<script src="logo-editor.js"></script>
+<script src="routine-editor.js"></script>
+<script src="chats-viewer.js"></script>
 </body>
 </html>

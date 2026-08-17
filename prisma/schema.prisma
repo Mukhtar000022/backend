@@ -1,0 +1,370 @@
+// Prisma schema — Ayala Kids backend
+// БД: PostgreSQL. Параметры подключения задаются по частям в .env
+// (DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE_HOST,
+// DATABASE_PORT, DATABASE_SSL), а строка DATABASE_URL собирается из них
+// автоматически в config/database.js.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Контент разделов приложения (главная, образование, родителям, кружки,
+// галерея, контакты). Хранится как JSON-строка — форма разделов гибкая,
+// а мобильное приложение получает готовый объект секции.
+model ContentSection {
+  key       String   @id // 'home' | 'education' | 'parents' | 'courses' | 'gallery' | 'contacts'
+  data      String // JSON.stringify секции
+  updatedAt DateTime @updatedAt
+}
+
+// Заявки родителей (консультация / запись)
+model Lead {
+  id        String   @id @default(cuid())
+  type      String   @default("consultation") // 'consultation' | 'enroll'
+  name      String
+  phone     String
+  message   String   @default("")
+  status    String   @default("new") // 'new' | 'contacted' | 'done'
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Журнал платежей. Kaspi QR/Pay не присылает автоподтверждение,
+// поэтому запись создаётся при открытии Kaspi (status = pending),
+// а администратор отмечает оплату вручную, сверяясь с кабинетом Kaspi Business.
+model Payment {
+  id        String   @id @default(cuid())
+  amount    String
+  name      String   @default("") // за кого оплата (имя ребёнка/родителя)
+  phone     String   @default("")
+  method    String   @default("kaspi")
+  status    String   @default("pending") // 'pending' | 'paid' | 'canceled'
+  note      String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Настройки оплаты (одна строка, id = 1)
+model PaymentSetting {
+  id        Int      @id @default(1)
+  enabled   Boolean  @default(true)
+  design    String   @default("outline")
+  amount    String   @default("15 000 ₸")
+  title     String   @default("Оплата за обучение")
+  kaspiUrl  String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
+// =====================================================================
+//  Пользователи, группы, родители, дети, воспитатели
+//  (имена столбцов и таблиц — в snake_case, как в ТЗ)
+// =====================================================================
+
+model User {
+  id           Int      @id @default(autoincrement())
+  phone_number String   @unique
+  password     String // хранится в виде хэша (scrypt), не в открытом виде
+  role         String   @default("parent") // 'admin' | 'tutor' | 'parent'
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  parent Parent? // профиль родителя (если role = parent)
+  tutor  Tutor? // профиль воспитателя (если role = tutor)
+
+  @@map("users")
+}
+
+model Group {
+  id         Int      @id @default(autoincrement())
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  parents      Parent[]
+  students     Student[]
+  tutors       Tutor[]
+  lessons      Lesson[]
+  routineItems RoutineItem[]
+  menus        Menu[]
+  photos       Photo[]
+
+  @@map("groups")
+}
+
+model Parent {
+  id         Int      @id @default(autoincrement())
+  firstname  String
+  surname    String
+  group_id   Int?
+  user_id    Int      @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  group         Group?         @relation(fields: [group_id], references: [id])
+  user          User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  students      Student[]
+  conversations Conversation[]
+
+  @@map("parents")
+}
+
+model Student {
+  id         Int      @id @default(autoincrement())
+  firstname  String
+  surname    String
+  parent_id  Int?
+  group_id   Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  parent      Parent?       @relation(fields: [parent_id], references: [id], onDelete: SetNull)
+  group       Group?        @relation(fields: [group_id], references: [id])
+  attendances Attendance[]
+  devCards    DevCard[]
+  reports     DailyReport[]
+
+  @@map("students")
+}
+
+model Tutor {
+  id         Int      @id @default(autoincrement())
+  firstname  String
+  surname    String
+  user_id    Int      @unique
+  group_id   Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user          User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  group         Group?         @relation(fields: [group_id], references: [id])
+  lessons       Lesson[]
+  devCards      DevCard[]
+  conversations Conversation[]
+  reports       DailyReport[]
+  photos        Photo[]
+
+  @@map("tutors")
+}
+
+// =====================================================================
+//  Расписание уроков и посещаемость
+// =====================================================================
+
+// Урок в расписании группы (недельный слот). Каждая группа видит только
+// свои уроки (фильтр по group_id).
+model Lesson {
+  id         Int      @id @default(autoincrement())
+  group_id   Int
+  tutor_id   Int?
+  subject    String // «Орыс тілі мен әдебиеті»
+  weekday    Int // 1=Пн ... 6=Сб
+  order_no   Int // порядковый номер урока в дне (1,2,3,4)
+  start_time String // «09:50»
+  end_time   String // «10:35»
+  topic      String   @default("") // Тақырып
+  homework   String   @default("") // Үй тапсырмасы
+  status     String   @default("planned") // planned | conducted | canceled (Өткізілді)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  group       Group        @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  tutor       Tutor?       @relation(fields: [tutor_id], references: [id], onDelete: SetNull)
+  attendances Attendance[]
+
+  @@index([group_id])
+  @@index([weekday])
+  @@map("lessons")
+}
+
+// Посещаемость: отметка присутствия ученика на конкретном уроке в конкретную дату.
+model Attendance {
+  id         Int      @id @default(autoincrement())
+  lesson_id  Int
+  student_id Int
+  date       DateTime @db.Date // конкретная дата урока
+  present    Boolean  @default(true)
+  note       String   @default("")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  lesson  Lesson  @relation(fields: [lesson_id], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@unique([lesson_id, student_id, date]) // одна отметка на ученика/урок/дату
+  @@index([date])
+  @@map("attendance")
+}
+
+// =====================================================================
+//  Индивидуальная карта развития ребёнка (ИКР) для системы НОБД
+//  Заполняет воспитатель, родитель — только просмотр.
+// =====================================================================
+
+// Одна карта на ребёнка в рамках возрастной группы (кіші/ортаңғы/ересек).
+// Перечень навыков (каталог) фиксирован и хранится в коде
+// (src/modules/devcards/devcards.catalog.js).
+model DevCard {
+  id         Int      @id @default(autoincrement())
+  student_id Int
+  age_group  String // 'kishi' | 'ortangy' | 'eresek'
+  period     String   @default("") // АРАЛЫҚ күні / период оценки (свободный текст)
+  note       String   @default("") // общий комментарий воспитателя
+  filled_by  Int? // tutor.id — кто заполнил
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  student Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  tutor   Tutor?    @relation(fields: [filled_by], references: [id], onDelete: SetNull)
+  marks   DevMark[]
+
+  @@unique([student_id, age_group]) // одна карта на ребёнка в группе
+  @@index([student_id])
+  @@map("dev_cards")
+}
+
+// Оценка одного навыка в карте. skill_no — номер навыка из каталога
+// (уникален в пределах age_group карты).
+model DevMark {
+  id         Int      @id @default(autoincrement())
+  card_id    Int
+  skill_no   Int // номер навыка из каталога (в рамках age_group)
+  level      String // 'formed' | 'partial' | 'not_formed'
+  updated_at DateTime @updatedAt
+
+  card DevCard @relation(fields: [card_id], references: [id], onDelete: Cascade)
+
+  @@unique([card_id, skill_no]) // одна отметка на навык в карте
+  @@map("dev_marks")
+}
+
+// =====================================================================
+//  Чат «воспитатель ↔ родитель» (realtime через WebSocket)
+// =====================================================================
+
+// Диалог между воспитателем и родителем. На пару — один диалог.
+model Conversation {
+  id              Int      @id @default(autoincrement())
+  tutor_id        Int
+  parent_id       Int
+  last_message_at DateTime @default(now()) // для сортировки списка диалогов
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  tutor    Tutor     @relation(fields: [tutor_id], references: [id], onDelete: Cascade)
+  parent   Parent    @relation(fields: [parent_id], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([tutor_id, parent_id]) // один диалог на пару
+  @@index([last_message_at])
+  @@map("conversations")
+}
+
+// Сообщение в диалоге. read_at заполняется, когда собеседник открыл чат.
+model Message {
+  id              Int       @id @default(autoincrement())
+  conversation_id Int
+  sender_user_id  Int // users.id автора
+  sender_role     String // 'tutor' | 'parent'
+  text            String
+  read_at         DateTime?
+  created_at      DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+
+  @@index([conversation_id, created_at])
+  @@map("messages")
+}
+
+// =====================================================================
+//  Жизнь группы: распорядок дня, меню, ежедневный отчёт, фото
+//  Заполняет воспитатель своей группы; родитель — только смотрит
+//  (и только по своему ребёнку).
+// =====================================================================
+
+// Күн тәртібі — распорядок дня группы (постоянный список пунктов).
+model RoutineItem {
+  id         Int      @id @default(autoincrement())
+  group_id   Int
+  // День недели: 1=Дүйсенбі … 7=Жексенбі. 0 — «күн сайын» (на все дни).
+  // Админ заполняет распорядок один раз и отмечает, на какие дни он идёт;
+  // на каждый выбранный день сохраняется свой набор пунктов.
+  weekday    Int      @default(0)
+  time       String // «08:00»
+  title      String // «Қабылдау, таңғы жаттығу»
+  subtitle   String   @default("") // «Спорт залы»
+  order_no   Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  group Group @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  @@index([group_id, weekday, order_no])
+  @@map("routine_items")
+}
+
+// Ас мәзірі — меню группы на конкретную дату.
+model Menu {
+  id         Int      @id @default(autoincrement())
+  group_id   Int
+  date       DateTime @db.Date
+  breakfast  String   @default("") // таңғы ас
+  breakfast2 String   @default("") // екінші таңғы ас
+  lunch      String   @default("") // түскі ас
+  snack      String   @default("") // бесін ас
+  dinner     String   @default("") // кешкі ас
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  group Group @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  @@unique([group_id, date])
+  @@index([date])
+  @@map("menus")
+}
+
+// Күнделікті есеп — как прошёл день у конкретного ребёнка.
+// mood — көңіл-күй, meals_eaten — сколько приёмов пищи съел (из 5).
+model DailyReport {
+  id            Int      @id @default(autoincrement())
+  student_id    Int
+  date          DateTime @db.Date
+  mood          String   @default("") // 'happy' | 'calm' | 'sad' | 'sick'
+  sleep_minutes Int      @default(0)
+  meals_eaten   Int      @default(0)
+  meals_total   Int      @default(5)
+  note          String   @default("")
+  tutor_id      Int?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  tutor   Tutor?  @relation(fields: [tutor_id], references: [id], onDelete: SetNull)
+
+  @@unique([student_id, date])
+  @@index([date])
+  @@map("daily_reports")
+}
+
+// Фото группы за день. Файл лежит в backend/uploads, в БД — путь.
+model Photo {
+  id         Int      @id @default(autoincrement())
+  group_id   Int
+  date       DateTime @db.Date
+  url        String // «/uploads/xxx.jpg»
+  caption    String   @default("")
+  tutor_id   Int?
+  created_at DateTime @default(now())
+
+  group Group  @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  tutor Tutor? @relation(fields: [tutor_id], references: [id], onDelete: SetNull)
+
+  @@index([group_id, date])
+  @@map("photos")
+}
